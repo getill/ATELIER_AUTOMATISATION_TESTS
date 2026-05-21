@@ -1,13 +1,26 @@
 # API Choice
 
-- Étudiant :
-- API choisie :
-- URL base :
-- Documentation officielle / README :
-- Auth : None / API Key / OAuth
+- Étudiant : Théo Lemray
+- API choisie : Art Institute of Chicago
+- URL base : https://api.artic.edu/api/v1/
+- Documentation officielle / README : https://api.artic.edu/docs/
+- Auth : None
 - Endpoints testés :
-  - GET ...
-  - GET ...
-- Hypothèses de contrat (champs attendus, types, codes) :
-- Limites / rate limiting connu :
-- Risques (instabilité, downtime, CORS, etc.) :
+  - `GET /artworks` : Récupération d'une liste paginée d'œuvres d'art.
+  - `GET /artworks/{id}` : Récupération des détails d'une œuvre spécifique.
+  - `GET /artworks/search?q={tiger}` : Recherche d'œuvres via des mots-clés.
+- Hypothèses de contrat (champs attendus, types, codes) : 
+  - **Codes HTTP :** `200 OK` (succès), `404 Not Found` (identifiant invalide), `429 Too Many Requests` (quota dépassé), `500+` (erreur serveur distante).
+  - **Structure globale :** Les réponses JSON sont encapsulées. Les données utiles se trouvent dans un nœud `data` (objet unique ou tableau d'objets), souvent accompagné de nœuds `pagination` et `config` (utile pour l'URL des images).
+  - **Champs attendus (sur le endpoint Artwork) :** 
+    - `id` (Integer) : Identifiant unique.
+    - `title` (String) : Nom de l'œuvre.
+    - `artist_title` (String/Null) : Nom de l'artiste.
+    - `image_id` (String/Null) : Identifiant de l'image (nécessaire pour la reconstruction de l'URL).
+    - `is_public_domain` (Boolean) : Détermine si l'œuvre est libre de droits.
+- Limites / rate limiting connu : limitation à 60 requêtes par minute.
+- Risques (instabilité, downtime, CORS, etc.) : 
+  - **Reconstruction des images (Piège classique) :** L'API ne renvoie pas l'URL directe de l'image. Il faut obligatoirement la reconstruire en utilisant le `image_id` et l'URL IIIF fournie dans le nœud `config` (ex: `https://www.artic.edu/iiif/2/{image_id}/full/843,/0/default.jpg`).
+  - **Données manquantes / Droits d'auteur :** Beaucoup d'œuvres n'ont pas de `image_id` valide car elles ne sont pas dans le domaine public. Il faudra prévoir une image de "fallback" (placeholder) côté front-end.
+  - **Rate Limiting (Erreur 429) :** La limite de 60 requêtes/minute peut être très rapidement atteinte en développement (surtout si on boucle sur des identifiants ou si un composant React/Vue se re-render en boucle).
+  - **Downtime / Latence :** Étant une API publique et éducative, les temps de réponse peuvent parfois être longs. Il est crucial d'implémenter des états de chargement (loaders) et une gestion d'erreur propre pour ne pas bloquer l'interface.
