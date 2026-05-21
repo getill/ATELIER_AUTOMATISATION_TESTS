@@ -54,7 +54,7 @@ Notions acquises de cette séquence :
 Vous avez vu dans cette séquence comment créer des secrets GiHUB afin de mettre en place de l'industrialisation continue.   
   
 ---------------------------------------------------
-🔹 Séquence 4 : Atelier
+🔹 Séquence 4 : Atelier 
 ---------------------------------------------------
 Objectif : Travailler sur l'automatisation de vos tests  
 Difficulté : Moyenne (~120 minutes)
