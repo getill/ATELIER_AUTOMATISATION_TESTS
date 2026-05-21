@@ -673,10 +673,317 @@
     footer.dashboard-footer a:hover {
       text-decoration: underline;
     }
+
+    /* Horizontal Test Pipeline Visualizer */
+    .test-pipeline-wrapper {
+      margin-bottom: 30px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .test-pipeline {
+      display: flex;
+      overflow-x: auto;
+      gap: 16px;
+      padding: 10px 5px 20px 5px;
+      align-items: stretch;
+      scroll-behavior: smooth;
+    }
+
+    /* Style the horizontal pipeline scrollbar */
+    .test-pipeline::-webkit-scrollbar {
+      height: 8px;
+    }
+    .test-pipeline::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 999px;
+    }
+    .test-pipeline::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.25);
+      border-radius: 999px;
+    }
+    .test-pipeline::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.4);
+    }
+
+    .pipeline-step {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 250px;
+      flex: 1;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    .pipeline-step:hover {
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .pipeline-step.step-pass:hover {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .pipeline-step.step-fail:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .pipeline-step.active {
+      background: rgba(99, 102, 241, 0.08);
+      border-width: 1.5px;
+    }
+
+    .pipeline-step.step-pass.active {
+      border-color: var(--success);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    }
+
+    .pipeline-step.step-fail.active {
+      border-color: var(--danger);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.25);
+    }
+
+    .step-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .step-pass .step-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .step-fail .step-badge {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .step-badge svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .step-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .step-index {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .step-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .step-latency {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    /* Pipeline interactive details panel */
+    .pipeline-details-panel {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.015);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      padding: 20px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+    }
+
+    .details-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .details-meta-row {
+      display: flex;
+      gap: 20px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 15px;
+    }
+
+    .details-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .details-logs-box {
+      background: rgba(7, 10, 19, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .details-logs-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .details-logs-box pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .details-logs-box code {
+      font-family: 'JetBrains Mono', monospace;
+      color: #fca5a5;
+      font-size: 0.85rem;
+    }
+
+    /* Fullscreen Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(7, 10, 19, 0.95);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(12px);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .loader-content {
+      text-align: center;
+      max-width: 500px;
+      padding: 40px;
+      background: rgba(13, 20, 38, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .loader-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(99, 102, 241, 0.1);
+      border-left-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
+      margin-bottom: 24px;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .loader-content h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .loader-content p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .loader-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .loader-progress-fill {
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, var(--accent), var(--info));
+      border-radius: 999px;
+      animation: progressIndeterminate 2s infinite linear;
+    }
+
+    .loader-subtext {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes progressIndeterminate {
+      0% { transform: translateX(-100%); width: 30%; }
+      50% { width: 40%; }
+      100% { transform: translateX(330%); width: 30%; }
+    }
   </style>
 </head>
 
 <body>
+  <!-- Fullscreen Loading Overlay (WOW factor & Anti-Freeze feedback indicator) -->
+  <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loader-content">
+      <div class="loader-spinner"></div>
+      <h3>Exécution de la suite de tests...</h3>
+      <p>Analyse de la latence, validation des contrats de schéma JSON et extraction des œuvres d'art depuis l'API du Chicago Art Institute.</p>
+      <div class="loader-progress-bar">
+        <div class="loader-progress-fill"></div>
+      </div>
+      <span class="loader-subtext">Veuillez patienter (environ 3 à 5 secondes)</span>
+    </div>
+  </div>
+
   <div class="container animate-fade">
     
     <!-- Top Header Bar -->
@@ -818,6 +1125,57 @@
           </div>
         </div>
       {% endif %}
+
+      <!-- Horizontal Test Pipeline Visualizer (WOW Factor & User Request fulfillment) -->
+      <div class="test-pipeline-wrapper">
+        <h2 class="section-title" style="margin-bottom: 8px;">Pipeline d'assertions QoS (Vue Horizontale)</h2>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;">
+          Visualisation horizontale interactive du pipeline de tests. Cliquez sur n'importe quel bloc pour inspecter les logs et détails correspondants.
+        </p>
+        
+        <div class="test-pipeline">
+          {% for test in latest_run.tests %}
+            <div class="pipeline-step {% if test.status == 'PASS' %}step-pass{% else %}step-fail{% endif %}" onclick="selectPipelineStep({{ loop.index0 }})">
+              <div class="step-badge">
+                {% if test.status == 'PASS' %}
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+                  </svg>
+                {% else %}
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                {% endif %}
+              </div>
+              <div class="step-info">
+                <span class="step-index">Étape {{ loop.index }}</span>
+                <span class="step-name">{{ test.name.split(' ')[0] }} {{ test.name.split(' ')[1] if test.name.split(' ')|length > 1 else '' }}</span>
+                <span class="step-latency">{{ "%.1f" | format(test.latency_ms) }} ms</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Interactive step details panel -->
+        <div id="pipeline-details-panel" class="pipeline-details-panel" style="display: none;">
+          <div class="details-header">
+            <h4 id="details-step-name" class="details-title">Nom de l'assertion</h4>
+            <div id="details-step-status"></div>
+          </div>
+          <div class="details-meta-row">
+            <div class="details-meta-item">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Latence : <span id="details-step-latency" style="font-family:'JetBrains Mono'; font-weight:600; color:#fff;"></span></span>
+            </div>
+          </div>
+          <div id="details-step-logs-container" class="details-logs-box" style="display: none;">
+            <div class="details-logs-title">Détails d'erreur & Logs d'assertion</div>
+            <pre><code id="details-step-logs"></code></pre>
+          </div>
+        </div>
+      </div>
 
       <!-- Detailed Test Results Split Section -->
       <div class="main-grid">
@@ -1025,7 +1383,62 @@
           }
         }
       });
+
+      // Interactive horizontal pipeline functions
+      const pipelineSteps = {{ latest_run.tests|tojson if latest_run else '[]' }};
+      
+      function selectPipelineStep(index) {
+        // Remove active class from all steps
+        document.querySelectorAll('.pipeline-step').forEach((el, idx) => {
+          if (idx === index) {
+            el.classList.add('active');
+          } else {
+            el.classList.remove('active');
+          }
+        });
+        
+        const step = pipelineSteps[index];
+        if (!step) return;
+        
+        const panel = document.getElementById('pipeline-details-panel');
+        const nameEl = document.getElementById('details-step-name');
+        const statusEl = document.getElementById('details-step-status');
+        const latencyEl = document.getElementById('details-step-latency');
+        const logsContainer = document.getElementById('details-step-logs-container');
+        const logsEl = document.getElementById('details-step-logs');
+        
+        nameEl.textContent = step.name;
+        statusEl.innerHTML = step.status === 'PASS' 
+          ? '<span class="badge-status pass">Pass</span>' 
+          : '<span class="badge-status fail">Fail</span>';
+        latencyEl.textContent = parseFloat(step.latency_ms).toFixed(1) + ' ms';
+        
+        if (step.details) {
+          logsContainer.style.display = 'block';
+          logsEl.textContent = step.details;
+        } else {
+          logsContainer.style.display = 'none';
+        }
+        
+        panel.style.display = 'block';
+      }
+      
+      // Auto-select first failed step, or first step by default
+      if (pipelineSteps.length > 0) {
+        let defaultIndex = pipelineSteps.findIndex(s => s.status === 'FAIL');
+        if (defaultIndex === -1) defaultIndex = 0;
+        selectPipelineStep(defaultIndex);
+      }
     </script>
   {% endif %}
+
+  <script>
+    // Bind all test execution forms to display the fullscreen loading overlay
+    document.querySelectorAll('form[action="/run"]').forEach(form => {
+      form.addEventListener('submit', () => {
+        document.getElementById('loading-overlay').style.display = 'flex';
+      });
+    });
+  </script>
 </body>
 </html>

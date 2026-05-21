@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
 import time
 import datetime
