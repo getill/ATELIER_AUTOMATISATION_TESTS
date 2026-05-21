@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Analytics & QoS Dashboard - Chicago Art Institute</title>
+  <!-- Modern Premium Typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN for interactive visual trend analysis -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    :root {
+      --bg-main: #070a13;
+      --bg-surface: rgba(13, 20, 38, 0.65);
+      --bg-surface-solid: #0d1426;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.25);
+      
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.2);
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.2);
+      --info: #06b6d4;
+      --info-glow: rgba(6, 182, 212, 0.2);
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(79, 70, 229, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      line-height: 1.6;
+      padding-bottom: 60px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 35px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .brand-title h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #fff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .brand-title p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title p span.api-badge {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      color: #a5b4fc;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Premium Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: 1px solid transparent;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(99, 102, 241, 0.55);
+      filter: brightness(1.1);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Flash Alerts styling */
+    .alert-container {
+      margin-bottom: 25px;
+    }
+
+    .alert {
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: 12px;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.25);
+      color: #a7f3d0;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.25);
+      color: #fde68a;
+    }
+
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.25);
+      color: #fecaca;
+    }
+
+    /* Cards structure */
+    .card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      transition: var(--transition-smooth);
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Grid Layouts */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    /* Individual KPI Card */
+    .kpi-card {
+      padding: 20px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      top: -20px;
+      right: -20px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .kpi-card.kpi-success::after {
+      background: radial-gradient(circle, var(--success-glow) 0%, transparent 70%);
+    }
+
+    .kpi-card.kpi-danger::after {
+      background: radial-gradient(circle, var(--danger-glow) 0%, transparent 70%);
+    }
+
+    .kpi-card.kpi-info::after {
+      background: radial-gradient(circle, var(--info-glow) 0%, transparent 70%);
+    }
+
+    .kpi-card.kpi-warning::after {
+      background: radial-gradient(circle, var(--warning-glow) 0%, transparent 70%);
+    }
+
+    .kpi-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .kpi-subtext {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Core Content Split */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 1100px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Section Titles */
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+    }
+
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* Analytics Chart Grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 20px;
+      min-height: 280px;
+    }
+
+    /* Artwork Exhibition Gallery (WOW Factor) */
+    .art-exhibition-section {
+      margin-bottom: 30px;
+    }
+
+    .art-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .art-card {
+      background: rgba(13, 20, 38, 0.45);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition-smooth);
+    }
+
+    .art-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+    }
+
+    .art-image-wrapper {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+      overflow: hidden;
+    }
+
+    .art-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: var(--transition-smooth);
+    }
+
+    .art-card:hover .art-image-wrapper img {
+      transform: scale(1.05);
+    }
+
+    .art-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      z-index: 2;
+    }
+
+    .art-badge.public {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--success);
+      color: #34d399;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .art-badge.copyright {
+      background: rgba(107, 114, 128, 0.2);
+      border: 1px solid #9ca3af;
+      color: #e5e7eb;
+    }
+
+    .art-details {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .art-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 2.7rem;
+      line-height: 1.35;
+    }
+
+    .art-artist {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .art-meta {
+      margin-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      background: rgba(13, 20, 38, 0.3);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+      font-weight: 600;
+      padding: 14px 18px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    /* Test Badges */
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-status.pass {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .badge-status.fail {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    /* Monospace formatting */
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+
+    code.details-code {
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: block;
+      max-width: 320px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    /* History List Sidebar */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.01);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .history-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition-smooth);
+    }
+
+    .history-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .history-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .history-id {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .history-time {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .history-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .history-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .history-pill.avail {
+      background: rgba(6, 182, 212, 0.1);
+      color: #22d3ee;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .history-pill.lat {
+      background: rgba(99, 102, 241, 0.1);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    /* Empty states */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-color);
+      border-radius: 20px;
+      max-width: 600px;
+      margin: 40px auto;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      display: block;
+      animation: pulse 2s infinite;
+    }
+
+    .empty-state h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    /* Keyframes Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.8; }
+    }
+
+    /* Footer styling */
+    footer.dashboard-footer {
+      text-align: center;
+      padding-top: 30px;
+      border-top: 1px solid var(--border-color);
+      margin-top: 40px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    footer.dashboard-footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer.dashboard-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container animate-fade">
+    
+    <!-- Top Header Bar -->
+    <header>
+      <div class="brand-title">
+        <h1>API QoS Monitor</h1>
+        <p>
+          <span class="api-badge">Art Institute of Chicago API</span>
+          Automated Health & Contract Compliance Dashboard
+        </p>
+      </div>
+      
+      <div class="header-actions">
+        <a href="/consignes" class="btn btn-secondary">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Consignes
+        </a>
+        <a href="/health" target="_blank" class="btn btn-secondary">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Sonde /health
+        </a>
+        <a href="/export/json" class="btn btn-secondary">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Exporter Historique (JSON)
+        </a>
+        <form action="/run" method="POST" style="display: inline;">
+          <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Lancer les tests
+          </button>
+        </form>
+      </div>
+    </header>
+
+    <!-- Flash Alert System -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alert-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category if category != 'danger' else 'danger' }}">
+              <span>{{ message }}</span>
+              <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; color:inherit; font-size:1.2rem; cursor:pointer; padding-left:15px;">&times;</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% if not latest_run %}
+      <!-- Empty DB State -->
+      <div class="empty-state">
+        <span class="empty-icon">📊</span>
+        <h3>Aucune donnée disponible</h3>
+        <p>Le module de stockage SQLite est vierge ou aucun test n'a encore été initié sur cette instance.</p>
+        <form action="/run" method="POST">
+          <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-right:8px;"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Initialiser la suite de tests
+          </button>
+        </form>
+      </div>
+    {% else %}
+
+      <!-- KPI Summary Row -->
+      <div class="kpi-grid">
+        <!-- Availability Card -->
+        <div class="card kpi-card kpi-info">
+          <span class="kpi-label">Disponibilité API</span>
+          <span class="kpi-value">{{ "%.1f" | format(latest_run.availability * 100) }}%</span>
+          <span class="kpi-subtext">Dernière exécution</span>
+        </div>
+        
+        <!-- Tests Summary Card -->
+        <div class="card kpi-card kpi-success">
+          <span class="kpi-label">Assertions Validées</span>
+          <span class="kpi-value" style="color: #34d399;">{{ latest_run.passed }} / {{ latest_run.passed + latest_run.failed }}</span>
+          <span class="kpi-subtext">{{ latest_run.failed }} anomalie(s) détectée(s)</span>
+        </div>
+        
+        <!-- Avg Latency Card -->
+        <div class="card kpi-card kpi-warning">
+          <span class="kpi-label">Latence Moyenne</span>
+          <span class="kpi-value">{{ "%.1f" | format(latest_run.latency_avg) }} <span style="font-size: 1rem; font-weight: 500; color: var(--text-secondary)">ms</span></span>
+          <span class="kpi-subtext">Seuil de tolérance: 3000ms</span>
+        </div>
+        
+        <!-- P95 Latency Card -->
+        <div class="card kpi-card kpi-info">
+          <span class="kpi-label">Percentile 95 (QoS)</span>
+          <span class="kpi-value">{{ "%.1f" | format(latest_run.latency_p95) }} <span style="font-size: 1rem; font-weight: 500; color: var(--text-secondary)">ms</span></span>
+          <span class="kpi-subtext">Pente de la latence critique</span>
+        </div>
+      </div>
+
+      <!-- Historical QoS Charts Row -->
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h3 class="section-title" style="margin-bottom: 12px; font-size:1rem;">Historique de Latence (Moyenne vs P95)</h3>
+          <canvas id="latencyChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <h3 class="section-title" style="margin-bottom: 12px; font-size:1rem;">Fiabilité & Disponibilité relative (%)</h3>
+          <canvas id="reliabilityChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Real Artwork Gallery Section (WOW Factor) -->
+      {% if latest_run.artworks %}
+        <div class="art-exhibition-section">
+          <h2 class="section-title">Galerie d'œuvres validées lors de l'exécution</h2>
+          <div class="art-gallery">
+            {% for art in latest_run.artworks %}
+              <div class="art-card">
+                <div class="art-image-wrapper">
+                  {% if art.image_url %}
+                    <img src="{{ art.image_url }}" alt="{{ art.title }}" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'250\' viewBox=\'0 0 400 250\'><rect width=\'100%\' height=\'100%\' fill=\'%23111827\'/><text x=\'50%\' y=\'50%\' font-family=\'Outfit\' font-weight=\'bold\' font-size=\'14\' fill=\'%234b5563\' text-anchor=\'middle\' dy=\'.3em\'>Image non disponible</text></svg>';">
+                  {% else %}
+                    <div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#111827; color:var(--text-muted); font-weight:bold; font-size:0.9rem;">
+                      Pas d'image CDN
+                    </div>
+                  {% endif %}
+                  
+                  {% if art.is_public %}
+                    <span class="art-badge public">Domaine Public</span>
+                  {% else %}
+                    <span class="art-badge copyright">Sous Licence</span>
+                  {% endif %}
+                </div>
+                <div class="art-details">
+                  <span class="art-title" title="{{ art.title }}">{{ art.title }}</span>
+                  <span class="art-artist" title="{{ art.artist }}">{{ art.artist }}</span>
+                  <div class="art-meta">
+                    <span>ID: #{{ art.artwork_id }}</span>
+                    <span>Art Institute of Chicago</span>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Detailed Test Results Split Section -->
+      <div class="main-grid">
+        <!-- Assertions Table -->
+        <div class="card">
+          <h2 class="section-title">Rapport d'assertion détaillé (Dernier Run)</h2>
+          <p style="color: var(--text-secondary); font-size:0.85rem; margin-top:-10px; margin-bottom: 20px;">
+            Exécuté le <span style="font-family:'JetBrains Mono'; font-weight:600; color:#fff;">{{ latest_run.timestamp.replace('T', ' ').split('.')[0] }}</span> (UTC/Local)
+          </p>
+          
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nom de l'assertion</th>
+                  <th>Statut</th>
+                  <th>Latence</th>
+                  <th>Détails d'échec / Logs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for test in latest_run.tests %}
+                  <tr>
+                    <td style="font-weight: 500; font-size: 0.95rem;">
+                      {{ test.name }}
+                    </td>
+                    <td>
+                      {% if test.status == 'PASS' %}
+                        <span class="badge-status pass">Pass</span>
+                      {% else %}
+                        <span class="badge-status fail">Fail</span>
+                      {% endif %}
+                    </td>
+                    <td style="font-family: 'JetBrains Mono'; font-weight:500;">
+                      {{ "%.1f" | format(test.latency_ms) }} ms
+                    </td>
+                    <td>
+                      {% if test.details %}
+                        <code class="details-code" title="{{ test.details }}">{{ test.details }}</code>
+                      {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">— Aucun incident</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- History Sidebar -->
+        <div class="card">
+          <h2 class="section-title">Historique des runs</h2>
+          <div class="history-list">
+            {% for run in history %}
+              <div class="history-item">
+                <div class="history-meta">
+                  <span class="history-id">Run #{{ run.id }}</span>
+                  <span class="history-time">{{ run.timestamp.replace('T', ' ').split('.')[0] }}</span>
+                </div>
+                <div class="history-stats">
+                  <span class="history-pill avail">
+                    {{ "%.0f" | format(run.availability * 100) }}% dispo
+                  </span>
+                  <span class="history-pill lat">
+                    {{ "%.0f" | format(run.latency_avg) }} ms
+                  </span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+      <p>Projet ESGI M1 — Plateforme de tests automatisés as Code. Réalisé par <b>Théo Lemray</b>.</p>
+      <p style="margin-top: 4px;">Accéder aux <a href="/consignes">consignes du projet</a></p>
+    </footer>
+  </div>
+
+  {% if history and latest_run %}
+    <!-- Charting & UI interactive scripts -->
+    <div id="history-data" data-history="{{ history|tojson|forceescape }}" style="display: none;"></div>
+    <script>
+      // Load historical data sent from SQLite via Flask template filters
+      const historyData = JSON.parse(document.getElementById('history-data').getAttribute('data-history'));
+      historyData.reverse(); // Display in chronological order (left-to-right)
+      
+      const labels = historyData.map((h, i) => {
+        const d = new Date(h.timestamp);
+        return `Run #${h.id} (${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')})`;
+      });
+      
+      const avgLatencies = historyData.map(h => h.latency_avg);
+      const p95Latencies = historyData.map(h => h.latency_p95);
+      const availabilities = historyData.map(h => h.availability * 100);
+      const errorRates = historyData.map(h => h.error_rate * 100);
+
+      // Latency Chart config
+      const ctxLatency = document.getElementById('latencyChart').getContext('2d');
+      new Chart(ctxLatency, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Latence Moyenne (ms)',
+              data: avgLatencies,
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.05)',
+              borderWidth: 2,
+              tension: 0.35,
+              fill: true,
+              pointBackgroundColor: '#6366f1',
+              pointRadius: 3
+            },
+            {
+              label: 'Percentile 95 (ms)',
+              data: p95Latencies,
+              borderColor: '#a855f7',
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0.35,
+              pointBackgroundColor: '#a855f7',
+              pointRadius: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.03)' },
+              ticks: { color: '#6b7280', font: { family: 'Outfit', size: 9 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.04)' },
+              ticks: { color: '#6b7280', font: { family: 'Outfit', size: 10 } },
+              title: { display: true, text: 'Temps (ms)', color: '#6b7280' }
+            }
+          }
+        }
+      });
+
+      // Reliability & Availability Chart config
+      const ctxReliability = document.getElementById('reliabilityChart').getContext('2d');
+      new Chart(ctxReliability, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Taux Disponibilité (%)',
+              data: availabilities,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.05)',
+              borderWidth: 2.5,
+              tension: 0.35,
+              fill: true,
+              pointBackgroundColor: '#10b981',
+              pointRadius: 4
+            },
+            {
+              label: "Taux d'erreur (%)",
+              data: errorRates,
+              borderColor: '#ef4444',
+              backgroundColor: 'transparent',
+              borderWidth: 1.5,
+              tension: 0.35,
+              pointBackgroundColor: '#ef4444',
+              pointRadius: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#9ca3af', font: { family: 'Outfit', size: 11 } }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.03)' },
+              ticks: { color: '#6b7280', font: { family: 'Outfit', size: 9 } }
+            },
+            y: {
+              min: 0,
+              max: 100,
+              grid: { color: 'rgba(255, 255, 255, 0.04)' },
+              ticks: { color: '#6b7280', font: { family: 'Outfit', size: 10 } },
+              title: { display: true, text: 'Pourcentage (%)', color: '#6b7280' }
+            }
+          }
+        }
+      });
+    </script>
+  {% endif %}
+</body>
+</html>
