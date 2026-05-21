@@ -324,7 +324,12 @@
       border: 1px solid var(--border-color);
       border-radius: 18px;
       padding: 20px;
-      min-height: 340px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 300px; /* Fixed height for the canvas wrapper to prevent Chart.js infinite resize loop */
     }
 
     /* Artwork Exhibition Gallery (WOW Factor) */
@@ -1085,11 +1090,15 @@
       <div class="charts-grid">
         <div class="chart-container">
           <h3 class="section-title" style="margin-bottom: 12px; font-size:1rem;">Historique de Latence (Moyenne vs P95)</h3>
-          <canvas id="latencyChart"></canvas>
+          <div class="chart-wrapper">
+            <canvas id="latencyChart"></canvas>
+          </div>
         </div>
         <div class="chart-container">
           <h3 class="section-title" style="margin-bottom: 12px; font-size:1rem;">Fiabilité & Disponibilité relative (%)</h3>
-          <canvas id="reliabilityChart"></canvas>
+          <div class="chart-wrapper">
+            <canvas id="reliabilityChart"></canvas>
+          </div>
         </div>
       </div>
 
