@@ -314,15 +314,9 @@
     /* Analytics Chart Grid */
     .charts-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 20px;
       margin-bottom: 30px;
-    }
-
-    @media (max-width: 768px) {
-      .charts-grid {
-        grid-template-columns: 1fr;
-      }
     }
 
     .chart-container {
@@ -330,7 +324,7 @@
       border: 1px solid var(--border-color);
       border-radius: 18px;
       padding: 20px;
-      min-height: 280px;
+      min-height: 340px;
     }
 
     /* Artwork Exhibition Gallery (WOW Factor) */
@@ -975,12 +969,21 @@
   <div id="loading-overlay" class="loading-overlay" style="display: none;">
     <div class="loader-content">
       <div class="loader-spinner"></div>
-      <h3>Exécution de la suite de tests...</h3>
-      <p>Analyse de la latence, validation des contrats de schéma JSON et extraction des œuvres d'art depuis l'API du Chicago Art Institute.</p>
+      <h3 id="loader-title">Exécution de la suite de tests...</h3>
+      <p id="loader-description">Analyse de la latence, validation des contrats de schéma JSON et extraction des œuvres d'art depuis l'API du Chicago Art Institute.</p>
+      
+      <!-- Live Real-Time Timer Visualizer (WOW Factor component) -->
+      <div style="margin-bottom: 24px; font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 600; color: #a5b4fc; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px 20px; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation: pulse 1.5s infinite;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>Durée : <span id="loader-timer" style="color: #fff; font-weight: 700;">0.0s</span></span>
+      </div>
+
       <div class="loader-progress-bar">
         <div class="loader-progress-fill"></div>
       </div>
-      <span class="loader-subtext">Veuillez patienter (environ 3 à 5 secondes)</span>
+      <span class="loader-subtext" id="loader-subtext">Veuillez patienter (environ 3 à 5 secondes)</span>
     </div>
   </div>
 
@@ -1433,10 +1436,77 @@
   {% endif %}
 
   <script>
-    // Bind all test execution forms to display the fullscreen loading overlay
+    let timerInterval = null;
+    
+    // Bind all test execution forms to trigger tests via AJAX/fetch
     document.querySelectorAll('form[action="/run"]').forEach(form => {
-      form.addEventListener('submit', () => {
-        document.getElementById('loading-overlay').style.display = 'flex';
+      form.addEventListener('submit', async (e) => {
+        // Prevent default browser form submit/reload behavior
+        e.preventDefault();
+        
+        const overlay = document.getElementById('loading-overlay');
+        const timerEl = document.getElementById('loader-timer');
+        const titleEl = document.getElementById('loader-title');
+        const descEl = document.getElementById('loader-description');
+        const subtextEl = document.getElementById('loader-subtext');
+        
+        // Reset overlay to default loading states
+        titleEl.textContent = "Exécution de la suite de tests...";
+        descEl.textContent = "Analyse de la latence, validation des contrats de schéma JSON et extraction des œuvres d'art depuis l'API du Chicago Art Institute.";
+        subtextEl.textContent = "Veuillez patienter (environ 3 à 5 secondes)";
+        timerEl.textContent = "0.0s";
+        
+        // Show the overlay
+        overlay.style.display = 'flex';
+        
+        // Start real-time elapsed timer (100ms interval)
+        const startTime = Date.now();
+        timerInterval = setInterval(() => {
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+          timerEl.textContent = elapsed + 's';
+        }, 100);
+        
+        try {
+          // Trigger execution via fetch (submits asynchronous request)
+          const response = await fetch('/run', {
+            method: 'POST',
+            body: new FormData(form) // Forward form body if present
+          });
+          
+          // Clear interval to STOP the timer
+          clearInterval(timerInterval);
+          
+          if (response.ok) {
+            // Get final exact duration
+            const finalDuration = ((Date.now() - startTime) / 1000).toFixed(1);
+            timerEl.textContent = finalDuration + 's';
+            
+            // Light up green/success visual state
+            titleEl.textContent = "Tests terminés avec succès !";
+            descEl.textContent = `La suite d'assertions QoS a été validée et enregistrée dans la base SQLite en exactement ${finalDuration} secondes.`;
+            subtextEl.textContent = "Rechargement du tableau de bord...";
+            
+            // Smoothly reload page after 1.2s to show updated dashboard state
+            setTimeout(() => {
+              window.location.reload();
+            }, 1200);
+          } else {
+            throw new Error(`Le serveur a retourné le code HTTP ${response.status}`);
+          }
+        } catch (err) {
+          clearInterval(timerInterval);
+          titleEl.textContent = "Échec de l'exécution";
+          descEl.textContent = `Une erreur s'est produite lors de l'appel du module de tests : ${err.message}`;
+          subtextEl.textContent = "Cliquez n'importe où pour fermer cette fenêtre.";
+          
+          // Allow user to click off the overlay to troubleshoot
+          overlay.style.cursor = 'pointer';
+          overlay.onclick = () => {
+            overlay.style.display = 'none';
+            overlay.onclick = null;
+            overlay.style.cursor = 'default';
+          };
+        }
       });
     });
   </script>
